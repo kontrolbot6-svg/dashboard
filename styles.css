@@ -212,15 +212,37 @@ body {
   border-radius: 8px;
 }
 
-.storyline {
-  margin: 0;
-  padding-left: 18px;
-  line-height: 1.5;
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
 }
 
-.storyline li {
-  margin-bottom: 8px;
+.records-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.records-table th,
+.records-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.records-table th {
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.records-table td {
   color: #d1d5db;
+}
+
+.mapping-table td:nth-child(2),
+.mapping-table td:nth-child(3) {
+  min-width: 240px;
 }
 
 @media (max-width: 1200px) {

@@ -42,8 +42,27 @@ const tabs = [
       </div>
 
       <div class="chart-card">
-        <h3>Enforcement Storyline</h3>
-        <ol class="storyline" id="ceh-storyline"></ol>
+        <h3>Visualization Field Mapping</h3>
+        <div id="ceh-mapping"></div>
+      </div>
+
+      <div class="chart-card">
+        <h3>All Enforcement Records</h3>
+        <div class="table-wrap">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>Source Index</th>
+                <th>Record ID</th>
+                <th>Date/Time</th>
+                <th>Event Type</th>
+                <th>Location</th>
+                <th>Officer</th>
+              </tr>
+            </thead>
+            <tbody id="ceh-records"></tbody>
+          </table>
+        </div>
       </div>
     `,
   },
@@ -131,6 +150,48 @@ const caseEnforcementData = {
     locationChecks: 22,
     nsoVisits: 11,
   },
+  records: [
+    {
+      sourceIndex: "incidents_dev_v1",
+      recordId: "INC-99231",
+      dateTime: "2026-03-20 19:42",
+      eventType: "Incident - Assault",
+      location: "Male'",
+      officer: "SN-2041",
+    },
+    {
+      sourceIndex: "case_involve_dev_v1",
+      recordId: "INV-5712",
+      dateTime: "2026-03-20 20:10",
+      eventType: "Case Involvement - Suspect",
+      location: "Male'",
+      officer: "-",
+    },
+    {
+      sourceIndex: "sns_person_dev_v1",
+      recordId: "SSP-4110",
+      dateTime: "2026-03-17 23:05",
+      eventType: "Stop & Search",
+      location: "Hulhumale",
+      officer: "SN-1188",
+    },
+    {
+      sourceIndex: "location_checks_dev_v1",
+      recordId: "LCK-8872",
+      dateTime: "2026-03-12 18:20",
+      eventType: "Location Check",
+      location: "Addu City",
+      officer: "SN-5512",
+    },
+    {
+      sourceIndex: "nso_visits_dev_v1",
+      recordId: "VIS-2291",
+      dateTime: "2026-03-05 14:35",
+      eventType: "NSO Visit",
+      location: "Fuvahmulah",
+      officer: "SN-9402",
+    },
+  ],
   monthlyTrend: [
     { month: "Apr", incidents: 1, stopSearches: 0, checks: 1, visits: 0 },
     { month: "May", incidents: 2, stopSearches: 1, checks: 1, visits: 0 },
@@ -469,23 +530,72 @@ function renderCaseEnforcement(profile) {
   drawHorizontalBars("ceh-hotspots", caseEnforcementData.hotspots, "#22c55e");
   drawHorizontalBars("ceh-officers", caseEnforcementData.officerTouchpoints, "#f59e0b");
 
-  const storyRoot = document.getElementById("ceh-storyline");
-  if (!storyRoot) return;
+  const mappingRoot = document.getElementById("ceh-mapping");
+  if (mappingRoot) {
+    mappingRoot.innerHTML = `
+      <div class="table-wrap">
+        <table class="records-table mapping-table">
+          <thead>
+            <tr>
+              <th>Visualization</th>
+              <th>Index</th>
+              <th>Fields Used</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>KPI Strip</td>
+              <td>incidents_dev_v1, case_involve_dev_v1, sns_person_dev_v1, location_checks_dev_v1, nso_visits_dev_v1</td>
+              <td>incident_id, involve_id_pk, stop_search_person_id, lcheck_id_pk, visit_id_pk</td>
+            </tr>
+            <tr>
+              <td>12-Month Activity Trend</td>
+              <td>incidents_dev_v1, sns_person_dev_v1, location_checks_dev_v1, nso_visits_dev_v1</td>
+              <td>incident_date, stopped_date, check_date, visit_date</td>
+            </tr>
+            <tr>
+              <td>Event Type Mix</td>
+              <td>case_involve_dev_v1, incidents_dev_v1, sns_person_dev_v1, location_checks_dev_v1, nso_visits_dev_v1</td>
+              <td>involve_id_pk, incident_id, stop_search_person_id, lcheck_id_pk, visit_id_pk</td>
+            </tr>
+            <tr>
+              <td>Location Hotspots</td>
+              <td>incidents_dev_v1, sns_person_dev_v1, nso_visits_dev_v1</td>
+              <td>island_name, atoll_name</td>
+            </tr>
+            <tr>
+              <td>Officer Touchpoints</td>
+              <td>sns_person_dev_v1, location_checks_dev_v1, nso_visits_dev_v1</td>
+              <td>officer_service_number, officer_full_name_eng</td>
+            </tr>
+            <tr>
+              <td>All Enforcement Records Table</td>
+              <td>all 5 indices above</td>
+              <td>record id + date + event type + location + officer fields from each source</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
 
-  const highMonth = caseEnforcementData.monthlyTrend.reduce((a, b) => {
-    const aTot = a.incidents + a.stopSearches + a.checks + a.visits;
-    const bTot = b.incidents + b.stopSearches + b.checks + b.visits;
-    return bTot > aTot ? b : a;
-  });
-
-  storyRoot.innerHTML = `
-    <li><strong>Pattern build-up:</strong> Case involvement (${caseEnforcementData.totals.caseInvolvements}) is the dominant enforcement signal, indicating repeat linkage to multiple events.</li>
-    <li><strong>Operational intensity:</strong> Peak activity appears in <strong>${highMonth.month}</strong>, where incident + check + stop/search volume was highest.</li>
-    <li><strong>Field contact profile:</strong> The subject had ${caseEnforcementData.totals.locationChecks} location checks and ${caseEnforcementData.totals.stopSearches} stop & search interactions, suggesting frequent frontline touchpoints.</li>
-    <li><strong>Geographic concentration:</strong> Highest hotspot is <strong>${caseEnforcementData.hotspots[0].label}</strong>, then ${caseEnforcementData.hotspots[1].label}, indicating concentrated enforcement geography.</li>
-    <li><strong>Officer exposure:</strong> Repeated engagements with top officers imply recurring operational overlap and should be examined for escalation pathways.</li>
-    <li><strong>Risk context link:</strong> With profile risk band <strong>${profile.risk_score_band}</strong>, this enforcement pattern supports prioritized monitoring and cross-tab drilldowns.</li>
-  `;
+  const recordsRoot = document.getElementById("ceh-records");
+  if (recordsRoot) {
+    recordsRoot.innerHTML = caseEnforcementData.records
+      .map(
+        (r) => `
+        <tr>
+          <td>${r.sourceIndex}</td>
+          <td>${r.recordId}</td>
+          <td>${r.dateTime}</td>
+          <td>${r.eventType}</td>
+          <td>${r.location}</td>
+          <td>${r.officer}</td>
+        </tr>
+      `,
+      )
+      .join("");
+  }
 }
 
 function renderTabContent(tab, profile) {
