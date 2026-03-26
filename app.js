@@ -4,8 +4,9 @@ const tabs = [
     label: "Overview",
     content: `
       <h2>Overview</h2>
+      <p class="placeholder"><strong>Scope:</strong> all visuals in this dashboard are for the selected profile only.</p>
       <div class="overview-chart-wrap">
-        <h3>Activity Indicators Radar</h3>
+        <h3>Activity Indicators Radar (Selected Profile)</h3>
         <canvas id="overview-radar" width="520" height="320"></canvas>
       </div>
     `,
@@ -78,7 +79,7 @@ const tabs = [
     label: "Interactions & Associations",
     content: `
       <h2>Interactions & Associations</h2>
-      <p class="placeholder">Interaction graph/list and relationship insights will render here.</p>
+      <p class="placeholder">Interaction graph/list and relationship insights for the selected profile will render here.</p>
     `,
   },
   {
@@ -86,7 +87,7 @@ const tabs = [
     label: "Mobility & Border Movement",
     content: `
       <h2>Mobility & Border Movement</h2>
-      <p class="placeholder">Crossings, travel patterns, and movement visualizations will render here.</p>
+      <p class="placeholder">Crossings, travel patterns, and movement visualizations for the selected profile will render here.</p>
     `,
   },
   {
@@ -94,7 +95,7 @@ const tabs = [
     label: "Vehicles & Traffic Compliance",
     content: `
       <h2>Vehicles & Traffic Compliance</h2>
-      <p class="placeholder">Vehicle links plus traffic/parking violation views will render here.</p>
+      <p class="placeholder">Vehicle links plus traffic/parking violation views for the selected profile will render here.</p>
     `,
   },
   {
@@ -102,7 +103,7 @@ const tabs = [
     label: "Maritime Assets",
     content: `
       <h2>Maritime Assets</h2>
-      <p class="placeholder">Vessel ownership and maritime profile context will render here.</p>
+      <p class="placeholder">Vessel ownership and maritime context for the selected profile will render here.</p>
     `,
   },
   {
@@ -110,7 +111,7 @@ const tabs = [
     label: "Business Links",
     content: `
       <h2>Business Links</h2>
-      <p class="placeholder">Business entities and economic link analysis will render here.</p>
+      <p class="placeholder">Business entities and economic link analysis for the selected profile will render here.</p>
     `,
   },
 ];
