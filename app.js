@@ -15,41 +15,40 @@ const tabs = [
     label: "Case & Enforcement History",
     content: `
       <h2>Case & Enforcement History</h2>
-      <p class="placeholder">Case progression narrative across case linkages, incidents, arrests, and location checks.</p>
+      <p class="placeholder">Index-led view: each visualization below is sourced from a single index only.</p>
 
       <div class="kpi-grid" id="ceh-kpis"></div>
-      <div class="narrative-strip" id="ceh-narrative"></div>
 
       <div class="case-grid">
         <div class="chart-card">
-          <h3>12-Month Enforcement Intensity (Incidents + Arrests + Checks)</h3>
-          <canvas id="ceh-trend" width="700" height="280"></canvas>
+          <h3>Incidents Trend (incidents_dev_v1)</h3>
+          <canvas id="ceh-incidents-trend" width="700" height="260"></canvas>
         </div>
         <div class="chart-card">
-          <h3>Event Type Mix</h3>
-          <canvas id="ceh-mix" width="420" height="280"></canvas>
+          <h3>Incident Crime Type Mix (incidents_dev_v1)</h3>
+          <canvas id="ceh-incidents-mix" width="420" height="260"></canvas>
         </div>
       </div>
 
       <div class="case-grid">
         <div class="chart-card">
-          <h3>Incident vs Arrest Pulse</h3>
-          <canvas id="ceh-pulse" width="700" height="260"></canvas>
+          <h3>Arrests Timing Heatmap (arrests_dev_v1)</h3>
+          <canvas id="ceh-arrests-heatmap" width="700" height="260"></canvas>
         </div>
         <div class="chart-card">
-          <h3>Geo Cluster Bubble Map</h3>
-          <canvas id="ceh-hotspots" width="420" height="260"></canvas>
+          <h3>Case Involvement Types (case_involve_dev_v1)</h3>
+          <canvas id="ceh-caseinvolve-mix" width="420" height="260"></canvas>
         </div>
       </div>
 
       <div class="case-grid">
         <div class="chart-card">
-          <h3>Case Progression Funnel</h3>
-          <canvas id="ceh-case-link" width="700" height="260"></canvas>
+          <h3>Location Checks Geo Clusters (location_checks_dev_v1)</h3>
+          <canvas id="ceh-location-bubbles" width="700" height="260"></canvas>
         </div>
         <div class="chart-card">
-          <h3>Enforcement Timing Heatmap</h3>
-          <canvas id="ceh-officers" width="420" height="260"></canvas>
+          <h3>Location Checks by Place Type (location_checks_dev_v1)</h3>
+          <canvas id="ceh-location-places" width="420" height="260"></canvas>
         </div>
       </div>
 
@@ -155,93 +154,71 @@ const sampleProfile = {
 };
 
 const caseEnforcementData = {
-  totals: {
-    incidents: 27,
-    arrests: 14,
-    caseInvolvements: 43,
-    locationChecks: 22,
+  incidents_dev_v1: {
+    total: 27,
+    monthly: [
+      { month: "Apr", value: 1 },
+      { month: "May", value: 2 },
+      { month: "Jun", value: 2 },
+      { month: "Jul", value: 3 },
+      { month: "Aug", value: 2 },
+      { month: "Sep", value: 3 },
+      { month: "Oct", value: 3 },
+      { month: "Nov", value: 2 },
+      { month: "Dec", value: 2 },
+      { month: "Jan", value: 3 },
+      { month: "Feb", value: 2 },
+      { month: "Mar", value: 2 },
+    ],
+    crimeTypeMix: [
+      { label: "Assault", value: 9, color: "#38bdf8" },
+      { label: "Theft", value: 7, color: "#22c55e" },
+      { label: "Drug", value: 6, color: "#f59e0b" },
+      { label: "Public Order", value: 5, color: "#a78bfa" },
+    ],
   },
-  caseLinks: [
-    { label: "Case Involvements", value: 43 },
-    { label: "Incidents", value: 27 },
-    { label: "Arrests", value: 14 },
-    { label: "Location Checks", value: 22 },
-  ],
-  timingHeatmap: [
-    [1, 0, 0, 2, 3, 4],
-    [0, 1, 1, 2, 4, 5],
-    [0, 0, 2, 3, 5, 4],
-    [1, 1, 2, 4, 6, 5],
-    [0, 1, 3, 5, 4, 3],
-    [0, 2, 3, 4, 3, 2],
-    [1, 1, 2, 3, 2, 1],
-  ],
+  arrests_dev_v1: {
+    total: 14,
+    timingHeatmap: [
+      [0, 0, 1, 2, 2, 1],
+      [0, 1, 1, 2, 1, 1],
+      [0, 0, 2, 2, 3, 1],
+      [0, 1, 2, 3, 3, 2],
+      [0, 1, 1, 2, 2, 1],
+      [0, 1, 2, 1, 1, 1],
+      [0, 0, 1, 1, 1, 0],
+    ],
+  },
+  case_involve_dev_v1: {
+    total: 43,
+    involvementMix: [
+      { label: "Suspect", value: 18, color: "#22c55e" },
+      { label: "Witness", value: 11, color: "#38bdf8" },
+      { label: "Victim", value: 9, color: "#f43f5e" },
+      { label: "Other", value: 5, color: "#a78bfa" },
+    ],
+  },
+  location_checks_dev_v1: {
+    total: 22,
+    geoClusters: [
+      { label: "Male'", value: 8 },
+      { label: "Hulhumale", value: 6 },
+      { label: "Addu City", value: 4 },
+      { label: "Fuvahmulah", value: 2 },
+      { label: "Kulhudhuffushi", value: 2 },
+    ],
+    placeTypeMix: [
+      { label: "Street", value: 8, color: "#38bdf8" },
+      { label: "Port", value: 5, color: "#22c55e" },
+      { label: "Residence", value: 4, color: "#f59e0b" },
+      { label: "Checkpoint", value: 5, color: "#a78bfa" },
+    ],
+  },
   records: [
-    {
-      sourceIndex: "incidents_dev_v1",
-      recordId: "INC-99231",
-      dateTime: "2026-03-20 19:42",
-      eventType: "Incident - Assault",
-      location: "Male'",
-      officer: "SN-2041",
-    },
-    {
-      sourceIndex: "case_involve_dev_v1",
-      recordId: "INV-5712",
-      dateTime: "2026-03-20 20:10",
-      eventType: "Case Involvement - Suspect",
-      location: "Male'",
-      officer: "-",
-    },
-    {
-      sourceIndex: "arrests_dev_v1",
-      recordId: "ARR-1330",
-      dateTime: "2026-03-18 00:15",
-      eventType: "Arrest - Theft",
-      location: "Male'",
-      officer: "SN-2041",
-    },
-    {
-      sourceIndex: "location_checks_dev_v1",
-      recordId: "LCK-8872",
-      dateTime: "2026-03-12 18:20",
-      eventType: "Location Check",
-      location: "Addu City",
-      officer: "SN-5512",
-    },
-  ],
-  monthlyTrend: [
-    { month: "Apr", incidents: 1, arrests: 0, checks: 1 },
-    { month: "May", incidents: 2, arrests: 1, checks: 1 },
-    { month: "Jun", incidents: 2, arrests: 1, checks: 2 },
-    { month: "Jul", incidents: 3, arrests: 2, checks: 2 },
-    { month: "Aug", incidents: 2, arrests: 1, checks: 2 },
-    { month: "Sep", incidents: 3, arrests: 2, checks: 3 },
-    { month: "Oct", incidents: 3, arrests: 2, checks: 2 },
-    { month: "Nov", incidents: 2, arrests: 1, checks: 2 },
-    { month: "Dec", incidents: 2, arrests: 1, checks: 2 },
-    { month: "Jan", incidents: 3, arrests: 1, checks: 2 },
-    { month: "Feb", incidents: 2, arrests: 1, checks: 2 },
-    { month: "Mar", incidents: 2, arrests: 1, checks: 1 },
-  ],
-  eventMix: [
-    { label: "Case Involvement", value: 43, color: "#22c55e" },
-    { label: "Incidents", value: 27, color: "#38bdf8" },
-    { label: "Arrests", value: 14, color: "#f43f5e" },
-    { label: "Location Checks", value: 22, color: "#a78bfa" },
-  ],
-  hotspots: [
-    { label: "Male'", value: 24 },
-    { label: "Hulhumale", value: 16 },
-    { label: "Addu City", value: 9 },
-    { label: "Fuvahmulah", value: 7 },
-    { label: "Kulhudhuffushi", value: 5 },
-  ],
-  officerTouchpoints: [
-    { label: "SN-2041", value: 12 },
-    { label: "SN-1188", value: 9 },
-    { label: "SN-5512", value: 7 },
-    { label: "SN-9402", value: 5 },
+    { sourceIndex: "incidents_dev_v1", recordId: "INC-99231", dateTime: "2026-03-20 19:42", eventType: "Incident - Assault", location: "Male'", officer: "SN-2041" },
+    { sourceIndex: "case_involve_dev_v1", recordId: "INV-5712", dateTime: "2026-03-20 20:10", eventType: "Case Involvement - Suspect", location: "Male'", officer: "-" },
+    { sourceIndex: "arrests_dev_v1", recordId: "ARR-1330", dateTime: "2026-03-18 00:15", eventType: "Arrest - Theft", location: "Male'", officer: "SN-2041" },
+    { sourceIndex: "location_checks_dev_v1", recordId: "LCK-8872", dateTime: "2026-03-12 18:20", eventType: "Location Check", location: "Addu City", officer: "SN-5512" },
   ],
 };
 
@@ -531,6 +508,54 @@ function drawPulseChart(canvasId, data) {
   ctx.fillText("Arrests", 126, 17);
 }
 
+function drawSimpleLineChart(canvasId, data, color = "#38bdf8") {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const padding = { top: 22, right: 22, bottom: 32, left: 34 };
+  const iw = w - padding.left - padding.right;
+  const ih = h - padding.top - padding.bottom;
+  const maxVal = Math.max(...data.map((d) => d.value), 1);
+  const stepX = iw / (data.length - 1 || 1);
+
+  ctx.beginPath();
+  ctx.moveTo(padding.left, padding.top);
+  ctx.lineTo(padding.left, h - padding.bottom);
+  ctx.lineTo(w - padding.right, h - padding.bottom);
+  ctx.strokeStyle = "#334155";
+  ctx.stroke();
+
+  ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = padding.left + i * stepX;
+    const y = padding.top + ih - (d.value / maxVal) * ih;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  data.forEach((d, i) => {
+    const x = padding.left + i * stepX;
+    const y = padding.top + ih - (d.value / maxVal) * ih;
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    if (i % 2 === 0) {
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "11px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(d.month, x, h - 10);
+    }
+  });
+}
+
 function drawBubbleClusters(canvasId, data) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
@@ -649,22 +674,15 @@ function renderOverview(profile) {
   drawRadarChart("overview-radar", labels, values);
 }
 
-function renderCaseEnforcement(profile) {
+function renderCaseEnforcement() {
   const kpiRoot = document.getElementById("ceh-kpis");
   if (!kpiRoot) return;
 
-  const totalEnforcementEvents =
-    caseEnforcementData.totals.incidents +
-    caseEnforcementData.totals.arrests +
-    caseEnforcementData.totals.caseInvolvements +
-    caseEnforcementData.totals.locationChecks;
-
   const kpis = [
-    { label: "Total Enforcement Events", value: totalEnforcementEvents },
-    { label: "Case Involvements", value: caseEnforcementData.totals.caseInvolvements },
-    { label: "Incidents", value: caseEnforcementData.totals.incidents },
-    { label: "Arrests", value: caseEnforcementData.totals.arrests },
-    { label: "Location Checks", value: caseEnforcementData.totals.locationChecks },
+    { label: "incidents_dev_v1 records", value: caseEnforcementData.incidents_dev_v1.total },
+    { label: "arrests_dev_v1 records", value: caseEnforcementData.arrests_dev_v1.total },
+    { label: "case_involve_dev_v1 records", value: caseEnforcementData.case_involve_dev_v1.total },
+    { label: "location_checks_dev_v1 records", value: caseEnforcementData.location_checks_dev_v1.total },
   ];
 
   kpiRoot.innerHTML = kpis
@@ -678,28 +696,12 @@ function renderCaseEnforcement(profile) {
     )
     .join("");
 
-  const peak = caseEnforcementData.monthlyTrend.reduce((a, b) => {
-    const aVal = a.incidents + a.arrests + a.checks;
-    const bVal = b.incidents + b.arrests + b.checks;
-    return bVal > aVal ? b : a;
-  });
-
-  const narrativeRoot = document.getElementById("ceh-narrative");
-  if (narrativeRoot) {
-    narrativeRoot.innerHTML = `
-      <div class="n-card"><span class="n-k">1</span><div><strong>Entry:</strong> ${caseEnforcementData.totals.caseInvolvements} case linkages identify repeated legal touchpoints.</div></div>
-      <div class="n-card"><span class="n-k">2</span><div><strong>Escalation:</strong> ${caseEnforcementData.totals.incidents} incidents progressed to ${caseEnforcementData.totals.arrests} arrests.</div></div>
-      <div class="n-card"><span class="n-k">3</span><div><strong>Pressure point:</strong> ${peak.month} is peak enforcement intensity month.</div></div>
-      <div class="n-card"><span class="n-k">4</span><div><strong>Ground activity:</strong> ${caseEnforcementData.totals.locationChecks} location checks indicate repeated physical verification touchpoints.</div></div>
-    `;
-  }
-
-  drawLineChart("ceh-trend", caseEnforcementData.monthlyTrend);
-  drawDonutChart("ceh-mix", caseEnforcementData.eventMix);
-  drawPulseChart("ceh-pulse", caseEnforcementData.monthlyTrend);
-  drawBubbleClusters("ceh-hotspots", caseEnforcementData.hotspots);
-  drawFunnelChart("ceh-case-link", caseEnforcementData.caseLinks);
-  drawTimingHeatmap("ceh-officers", caseEnforcementData.timingHeatmap);
+  drawSimpleLineChart("ceh-incidents-trend", caseEnforcementData.incidents_dev_v1.monthly, "#38bdf8");
+  drawDonutChart("ceh-incidents-mix", caseEnforcementData.incidents_dev_v1.crimeTypeMix);
+  drawTimingHeatmap("ceh-arrests-heatmap", caseEnforcementData.arrests_dev_v1.timingHeatmap);
+  drawDonutChart("ceh-caseinvolve-mix", caseEnforcementData.case_involve_dev_v1.involvementMix);
+  drawBubbleClusters("ceh-location-bubbles", caseEnforcementData.location_checks_dev_v1.geoClusters);
+  drawDonutChart("ceh-location-places", caseEnforcementData.location_checks_dev_v1.placeTypeMix);
 
   const mappingRoot = document.getElementById("ceh-mapping");
   if (mappingRoot) {
@@ -715,44 +717,39 @@ function renderCaseEnforcement(profile) {
           </thead>
           <tbody>
             <tr>
-              <td>KPI Strip</td>
-              <td>case_involve_dev_v1, incidents_dev_v1, arrests_dev_v1, location_checks_dev_v1</td>
-              <td>involve_id_pk, incident_id, arrest_id/incident_id, lcheck_id_pk</td>
+              <td>Incidents Trend</td>
+              <td>incidents_dev_v1</td>
+              <td>incident_date, incident_id</td>
             </tr>
             <tr>
-              <td>12-Month Enforcement Intensity</td>
-              <td>incidents_dev_v1, arrests_dev_v1, location_checks_dev_v1</td>
-              <td>incident_date, arrest_date/incident_date, check_date</td>
+              <td>Incident Crime Type Mix</td>
+              <td>incidents_dev_v1</td>
+              <td>crime_type, incident_id</td>
             </tr>
             <tr>
-              <td>Event Type Mix</td>
-              <td>case_involve_dev_v1, incidents_dev_v1, arrests_dev_v1, location_checks_dev_v1</td>
-              <td>involve_id_pk, incident_id, arrest_id/incident_id, lcheck_id_pk</td>
+              <td>Arrests Timing Heatmap</td>
+              <td>arrests_dev_v1</td>
+              <td>incident_date (or arrest_date), day_of_the_week_no, hour</td>
             </tr>
             <tr>
-              <td>Incident vs Arrest Pulse</td>
-              <td>incidents_dev_v1, arrests_dev_v1</td>
-              <td>incident_date, incident_id, crime_type (arrests uses incident-style mapping with type=arrest)</td>
+              <td>Case Involvement Types</td>
+              <td>case_involve_dev_v1</td>
+              <td>involvement_type, involve_id_pk</td>
             </tr>
             <tr>
-              <td>Location Hotspots</td>
-              <td>incidents_dev_v1, arrests_dev_v1, location_checks_dev_v1</td>
-              <td>island_name, atoll_name, latitude, longitude</td>
+              <td>Location Checks Geo Clusters</td>
+              <td>location_checks_dev_v1</td>
+              <td>latitude, longitude, geo_location, lcheck_id_pk</td>
             </tr>
             <tr>
-              <td>Top Case Linkages</td>
-              <td>case_involve_dev_v1, incidents_dev_v1, arrests_dev_v1</td>
-              <td>case_id, incident_id, involve_id_pk</td>
-            </tr>
-            <tr>
-              <td>Enforcement Timing Heatmap</td>
-              <td>location_checks_dev_v1, incidents_dev_v1, arrests_dev_v1</td>
-              <td>day_of_the_week_no, hour, incident_date (time-bucketed)</td>
+              <td>Location Checks by Place Type</td>
+              <td>location_checks_dev_v1</td>
+              <td>place_type, lcheck_id_pk</td>
             </tr>
             <tr>
               <td>All Enforcement Records Table</td>
               <td>case_involve_dev_v1, incidents_dev_v1, arrests_dev_v1, location_checks_dev_v1</td>
-              <td>record id + date + event type + location + officer fields from each source</td>
+              <td>source-level record id, date/time, event type, location, officer fields</td>
             </tr>
           </tbody>
         </table>
