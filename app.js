@@ -15,35 +15,35 @@ const tabs = [
     label: "Case & Enforcement History",
     content: `
       <h2>Case & Enforcement History</h2>
-      <p class="placeholder">Phase 1 (index-by-index): <strong>case_involve_dev_v1</strong> only.</p>
+      <p class="placeholder">Phase 1 (index-by-index): <strong>case_involve_dev_v1</strong> only — scoped to the <strong>selected profile</strong>.</p>
 
       <div class="kpi-grid" id="ceh-kpis"></div>
 
       <div class="case-grid">
         <div class="chart-card">
-          <h3>Case Involvement Added Over Time</h3>
+          <h3>Case Involvement Added Over Time (Selected Profile)</h3>
           <canvas id="ceh-case-monthly" width="700" height="260"></canvas>
         </div>
         <div class="chart-card">
-          <h3>Involvement Type Mix</h3>
+          <h3>Involvement Type Mix (Selected Profile)</h3>
           <canvas id="ceh-caseinvolve-mix" width="420" height="260"></canvas>
         </div>
       </div>
 
       <div class="case-grid">
         <div class="chart-card">
-          <h3>Age Band Distribution</h3>
+          <h3>Age Band Distribution (Selected Profile)</h3>
           <canvas id="ceh-case-agebands" width="700" height="260"></canvas>
         </div>
         <div class="chart-card">
-          <h3>Gender Mix</h3>
+          <h3>Gender Mix (Selected Profile)</h3>
           <canvas id="ceh-case-gender" width="420" height="260"></canvas>
         </div>
       </div>
 
       <div class="case-grid">
         <div class="chart-card">
-          <h3>Top Nationalities</h3>
+          <h3>Top Nationalities (Selected Profile)</h3>
           <canvas id="ceh-case-nationality" width="700" height="260"></canvas>
         </div>
       </div>
@@ -244,10 +244,11 @@ const caseEnforcementData = {
     ],
   },
   records: [
-    { sourceIndex: "incidents_dev_v1", recordId: "INC-99231", dateTime: "2026-03-20 19:42", eventType: "Incident - Assault", location: "Male'", officer: "SN-2041" },
-    { sourceIndex: "case_involve_dev_v1", recordId: "INV-5712", dateTime: "2026-03-20 20:10", eventType: "Case Involvement - Suspect", location: "Male'", officer: "-" },
-    { sourceIndex: "arrests_dev_v1", recordId: "ARR-1330", dateTime: "2026-03-18 00:15", eventType: "Arrest - Theft", location: "Male'", officer: "SN-2041" },
-    { sourceIndex: "location_checks_dev_v1", recordId: "LCK-8872", dateTime: "2026-03-12 18:20", eventType: "Location Check", location: "Addu City", officer: "SN-5512" },
+    { sourceIndex: "incidents_dev_v1", personId: "PID-99999", recordId: "INC-99231", dateTime: "2026-03-20 19:42", eventType: "Incident - Assault", location: "Male'", officer: "SN-2041" },
+    { sourceIndex: "case_involve_dev_v1", personId: "PID-00001", recordId: "INV-5712", dateTime: "2026-03-20 20:10", eventType: "Case Involvement - Suspect", location: "Male'", officer: "-" },
+    { sourceIndex: "case_involve_dev_v1", personId: "PID-00001", recordId: "INV-5718", dateTime: "2026-02-14 16:40", eventType: "Case Involvement - Witness", location: "Male'", officer: "-" },
+    { sourceIndex: "arrests_dev_v1", personId: "PID-00001", recordId: "ARR-1330", dateTime: "2026-03-18 00:15", eventType: "Arrest - Theft", location: "Male'", officer: "SN-2041" },
+    { sourceIndex: "location_checks_dev_v1", personId: "PID-00001", recordId: "LCK-8872", dateTime: "2026-03-12 18:20", eventType: "Location Check", location: "Addu City", officer: "SN-5512" },
   ],
 };
 
@@ -703,7 +704,7 @@ function renderOverview(profile) {
   drawRadarChart("overview-radar", labels, values);
 }
 
-function renderCaseEnforcement() {
+function renderCaseEnforcement(profile) {
   const kpiRoot = document.getElementById("ceh-kpis");
   if (!kpiRoot) return;
 
@@ -772,7 +773,7 @@ function renderCaseEnforcement() {
             <tr>
               <td>Records Table</td>
               <td>case_involve_dev_v1</td>
-              <td>involve_id_pk, incident_id, added_date, full_name_eng, gender, age, nationality_eng, involvement_type</td>
+              <td>person_id / id_card_number / passport_number linkage + involve_id_pk, incident_id, added_date, full_name_eng, gender, age, nationality_eng, involvement_type</td>
             </tr>
           </tbody>
         </table>
@@ -782,7 +783,9 @@ function renderCaseEnforcement() {
 
   const recordsRoot = document.getElementById("ceh-records");
   if (recordsRoot) {
-    const caseOnly = caseEnforcementData.records.filter((r) => r.sourceIndex === "case_involve_dev_v1");
+    const caseOnly = caseEnforcementData.records.filter(
+      (r) => r.sourceIndex === "case_involve_dev_v1" && r.personId === profile.person_id,
+    );
     recordsRoot.innerHTML = caseOnly
       .map(
         (r) => `
