@@ -15,13 +15,14 @@ const tabs = [
     label: "Case & Enforcement History",
     content: `
       <h2>Case & Enforcement History</h2>
-      <p class="placeholder">Narrative-driven enforcement analytics built from case_involve, incidents, stop-search, location checks, and NSO visits.</p>
+      <p class="placeholder">Case progression narrative across cases, incidents, arrests, stop-search, location checks, and NSO touchpoints.</p>
 
       <div class="kpi-grid" id="ceh-kpis"></div>
+      <div class="narrative-strip" id="ceh-narrative"></div>
 
       <div class="case-grid">
         <div class="chart-card">
-          <h3>12-Month Enforcement Activity Trend</h3>
+          <h3>12-Month Enforcement Intensity (Incidents + Arrests + Checks + Stops + NSO)</h3>
           <canvas id="ceh-trend" width="700" height="280"></canvas>
         </div>
         <div class="chart-card">
@@ -32,8 +33,19 @@ const tabs = [
 
       <div class="case-grid">
         <div class="chart-card">
-          <h3>Location Hotspots (Island / Atoll)</h3>
-          <canvas id="ceh-hotspots" width="700" height="260"></canvas>
+          <h3>Incident vs Arrest Pulse</h3>
+          <canvas id="ceh-pulse" width="700" height="260"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Location Hotspots</h3>
+          <canvas id="ceh-hotspots" width="420" height="260"></canvas>
+        </div>
+      </div>
+
+      <div class="case-grid">
+        <div class="chart-card">
+          <h3>Top Case Linkages</h3>
+          <canvas id="ceh-case-link" width="700" height="260"></canvas>
         </div>
         <div class="chart-card">
           <h3>Officer Touchpoints</h3>
@@ -145,11 +157,19 @@ const sampleProfile = {
 const caseEnforcementData = {
   totals: {
     incidents: 27,
+    arrests: 14,
     caseInvolvements: 43,
     stopSearches: 18,
     locationChecks: 22,
     nsoVisits: 11,
   },
+  caseLinks: [
+    { label: "CASE-8841", value: 9 },
+    { label: "CASE-7712", value: 7 },
+    { label: "CASE-9033", value: 6 },
+    { label: "CASE-6620", value: 5 },
+    { label: "CASE-1182", value: 4 },
+  ],
   records: [
     {
       sourceIndex: "incidents_dev_v1",
@@ -166,6 +186,14 @@ const caseEnforcementData = {
       eventType: "Case Involvement - Suspect",
       location: "Male'",
       officer: "-",
+    },
+    {
+      sourceIndex: "arrests_dev_v1",
+      recordId: "ARR-1330",
+      dateTime: "2026-03-18 00:15",
+      eventType: "Arrest - Theft",
+      location: "Male'",
+      officer: "SN-2041",
     },
     {
       sourceIndex: "sns_person_dev_v1",
@@ -193,22 +221,23 @@ const caseEnforcementData = {
     },
   ],
   monthlyTrend: [
-    { month: "Apr", incidents: 1, stopSearches: 0, checks: 1, visits: 0 },
-    { month: "May", incidents: 2, stopSearches: 1, checks: 1, visits: 0 },
-    { month: "Jun", incidents: 2, stopSearches: 1, checks: 2, visits: 1 },
-    { month: "Jul", incidents: 3, stopSearches: 2, checks: 2, visits: 1 },
-    { month: "Aug", incidents: 2, stopSearches: 1, checks: 2, visits: 1 },
-    { month: "Sep", incidents: 3, stopSearches: 2, checks: 3, visits: 1 },
-    { month: "Oct", incidents: 3, stopSearches: 2, checks: 2, visits: 1 },
-    { month: "Nov", incidents: 2, stopSearches: 1, checks: 2, visits: 1 },
-    { month: "Dec", incidents: 2, stopSearches: 2, checks: 2, visits: 1 },
-    { month: "Jan", incidents: 3, stopSearches: 2, checks: 2, visits: 2 },
-    { month: "Feb", incidents: 2, stopSearches: 2, checks: 2, visits: 1 },
-    { month: "Mar", incidents: 2, stopSearches: 2, checks: 1, visits: 1 },
+    { month: "Apr", incidents: 1, arrests: 0, stopSearches: 0, checks: 1, visits: 0 },
+    { month: "May", incidents: 2, arrests: 1, stopSearches: 1, checks: 1, visits: 0 },
+    { month: "Jun", incidents: 2, arrests: 1, stopSearches: 1, checks: 2, visits: 1 },
+    { month: "Jul", incidents: 3, arrests: 2, stopSearches: 2, checks: 2, visits: 1 },
+    { month: "Aug", incidents: 2, arrests: 1, stopSearches: 1, checks: 2, visits: 1 },
+    { month: "Sep", incidents: 3, arrests: 2, stopSearches: 2, checks: 3, visits: 1 },
+    { month: "Oct", incidents: 3, arrests: 2, stopSearches: 2, checks: 2, visits: 1 },
+    { month: "Nov", incidents: 2, arrests: 1, stopSearches: 1, checks: 2, visits: 1 },
+    { month: "Dec", incidents: 2, arrests: 1, stopSearches: 2, checks: 2, visits: 1 },
+    { month: "Jan", incidents: 3, arrests: 1, stopSearches: 2, checks: 2, visits: 2 },
+    { month: "Feb", incidents: 2, arrests: 1, stopSearches: 2, checks: 2, visits: 1 },
+    { month: "Mar", incidents: 2, arrests: 1, stopSearches: 2, checks: 1, visits: 1 },
   ],
   eventMix: [
     { label: "Case Involvement", value: 43, color: "#22c55e" },
     { label: "Incidents", value: 27, color: "#38bdf8" },
+    { label: "Arrests", value: 14, color: "#f43f5e" },
     { label: "Location Checks", value: 22, color: "#a78bfa" },
     { label: "Stop & Search", value: 18, color: "#f59e0b" },
     { label: "NSO Visits", value: 11, color: "#ef4444" },
@@ -353,7 +382,7 @@ function drawLineChart(canvasId, data) {
   const iw = w - padding.left - padding.right;
   const ih = h - padding.top - padding.bottom;
 
-  const totals = data.map((d) => d.incidents + d.stopSearches + d.checks + d.visits);
+  const totals = data.map((d) => d.incidents + d.arrests + d.stopSearches + d.checks + d.visits);
   const maxVal = Math.max(...totals, 1);
 
   ctx.strokeStyle = "#334155";
@@ -467,6 +496,53 @@ function drawHorizontalBars(canvasId, data, barColor = "#38bdf8") {
   });
 }
 
+function drawPulseChart(canvasId, data) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const padding = { top: 20, right: 20, bottom: 32, left: 40 };
+  const iw = w - padding.left - padding.right;
+  const ih = h - padding.top - padding.bottom;
+  const maxVal = Math.max(...data.map((d) => Math.max(d.incidents, d.arrests)), 1);
+  const step = iw / data.length;
+
+  data.forEach((d, i) => {
+    const baseX = padding.left + i * step + 8;
+    const barW = Math.max(6, step * 0.32);
+
+    const ihInc = (d.incidents / maxVal) * ih;
+    const ihArr = (d.arrests / maxVal) * ih;
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillRect(baseX, h - padding.bottom - ihInc, barW, ihInc);
+
+    ctx.fillStyle = "#f43f5e";
+    ctx.fillRect(baseX + barW + 4, h - padding.bottom - ihArr, barW, ihArr);
+
+    if (i % 2 === 0) {
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "11px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(d.month, baseX + barW, h - 10);
+    }
+  });
+
+  ctx.fillStyle = "#38bdf8";
+  ctx.fillRect(12, 8, 10, 10);
+  ctx.fillStyle = "#cbd5e1";
+  ctx.font = "12px Inter, sans-serif";
+  ctx.fillText("Incidents", 28, 17);
+
+  ctx.fillStyle = "#f43f5e";
+  ctx.fillRect(110, 8, 10, 10);
+  ctx.fillStyle = "#cbd5e1";
+  ctx.fillText("Arrests", 126, 17);
+}
+
 function renderOverview(profile) {
   const labels = [
     "Arrests 180d",
@@ -500,6 +576,7 @@ function renderCaseEnforcement(profile) {
 
   const totalEnforcementEvents =
     caseEnforcementData.totals.incidents +
+    caseEnforcementData.totals.arrests +
     caseEnforcementData.totals.caseInvolvements +
     caseEnforcementData.totals.stopSearches +
     caseEnforcementData.totals.locationChecks +
@@ -507,8 +584,9 @@ function renderCaseEnforcement(profile) {
 
   const kpis = [
     { label: "Total Enforcement Events", value: totalEnforcementEvents },
-    { label: "Incidents", value: caseEnforcementData.totals.incidents },
     { label: "Case Involvements", value: caseEnforcementData.totals.caseInvolvements },
+    { label: "Incidents", value: caseEnforcementData.totals.incidents },
+    { label: "Arrests", value: caseEnforcementData.totals.arrests },
     { label: "Stop & Search", value: caseEnforcementData.totals.stopSearches },
     { label: "Location Checks", value: caseEnforcementData.totals.locationChecks },
     { label: "NSO Visits", value: caseEnforcementData.totals.nsoVisits },
@@ -525,9 +603,27 @@ function renderCaseEnforcement(profile) {
     )
     .join("");
 
+  const peak = caseEnforcementData.monthlyTrend.reduce((a, b) => {
+    const aVal = a.incidents + a.arrests + a.stopSearches + a.checks + a.visits;
+    const bVal = b.incidents + b.arrests + b.stopSearches + b.checks + b.visits;
+    return bVal > aVal ? b : a;
+  });
+
+  const narrativeRoot = document.getElementById("ceh-narrative");
+  if (narrativeRoot) {
+    narrativeRoot.innerHTML = `
+      <div class="n-card"><span class="n-k">1</span><div><strong>Entry:</strong> ${caseEnforcementData.totals.caseInvolvements} case linkages identify repeated legal touchpoints.</div></div>
+      <div class="n-card"><span class="n-k">2</span><div><strong>Escalation:</strong> ${caseEnforcementData.totals.incidents} incidents progressed to ${caseEnforcementData.totals.arrests} arrests.</div></div>
+      <div class="n-card"><span class="n-k">3</span><div><strong>Pressure point:</strong> ${peak.month} is peak enforcement intensity month.</div></div>
+      <div class="n-card"><span class="n-k">4</span><div><strong>Ground activity:</strong> ${caseEnforcementData.totals.stopSearches} stop-search + ${caseEnforcementData.totals.locationChecks} location checks + ${caseEnforcementData.totals.nsoVisits} NSO contacts.</div></div>
+    `;
+  }
+
   drawLineChart("ceh-trend", caseEnforcementData.monthlyTrend);
   drawDonutChart("ceh-mix", caseEnforcementData.eventMix);
+  drawPulseChart("ceh-pulse", caseEnforcementData.monthlyTrend);
   drawHorizontalBars("ceh-hotspots", caseEnforcementData.hotspots, "#22c55e");
+  drawHorizontalBars("ceh-case-link", caseEnforcementData.caseLinks, "#38bdf8");
   drawHorizontalBars("ceh-officers", caseEnforcementData.officerTouchpoints, "#f59e0b");
 
   const mappingRoot = document.getElementById("ceh-mapping");
@@ -545,23 +641,33 @@ function renderCaseEnforcement(profile) {
           <tbody>
             <tr>
               <td>KPI Strip</td>
-              <td>incidents_dev_v1, case_involve_dev_v1, sns_person_dev_v1, location_checks_dev_v1, nso_visits_dev_v1</td>
-              <td>incident_id, involve_id_pk, stop_search_person_id, lcheck_id_pk, visit_id_pk</td>
+              <td>case_involve_dev_v1, incidents_dev_v1, arrests_dev_v1, sns_person_dev_v1, location_checks_dev_v1, nso_visits_dev_v1</td>
+              <td>involve_id_pk, incident_id, arrest_id/incident_id, stop_search_person_id, lcheck_id_pk, visit_id_pk</td>
             </tr>
             <tr>
-              <td>12-Month Activity Trend</td>
-              <td>incidents_dev_v1, sns_person_dev_v1, location_checks_dev_v1, nso_visits_dev_v1</td>
-              <td>incident_date, stopped_date, check_date, visit_date</td>
+              <td>12-Month Enforcement Intensity</td>
+              <td>incidents_dev_v1, arrests_dev_v1, sns_person_dev_v1, location_checks_dev_v1, nso_visits_dev_v1</td>
+              <td>incident_date, arrest_date/incident_date, stopped_date, check_date, visit_date</td>
             </tr>
             <tr>
               <td>Event Type Mix</td>
-              <td>case_involve_dev_v1, incidents_dev_v1, sns_person_dev_v1, location_checks_dev_v1, nso_visits_dev_v1</td>
-              <td>involve_id_pk, incident_id, stop_search_person_id, lcheck_id_pk, visit_id_pk</td>
+              <td>case_involve_dev_v1, incidents_dev_v1, arrests_dev_v1, sns_person_dev_v1, location_checks_dev_v1, nso_visits_dev_v1</td>
+              <td>involve_id_pk, incident_id, arrest_id/incident_id, stop_search_person_id, lcheck_id_pk, visit_id_pk</td>
+            </tr>
+            <tr>
+              <td>Incident vs Arrest Pulse</td>
+              <td>incidents_dev_v1, arrests_dev_v1</td>
+              <td>incident_date, incident_id, crime_type (arrests uses incident-style mapping with type=arrest)</td>
             </tr>
             <tr>
               <td>Location Hotspots</td>
               <td>incidents_dev_v1, sns_person_dev_v1, nso_visits_dev_v1</td>
               <td>island_name, atoll_name</td>
+            </tr>
+            <tr>
+              <td>Top Case Linkages</td>
+              <td>case_involve_dev_v1, incidents_dev_v1, arrests_dev_v1</td>
+              <td>case_id, incident_id, involve_id_pk</td>
             </tr>
             <tr>
               <td>Officer Touchpoints</td>
