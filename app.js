@@ -1,10 +1,13 @@
 const tabs = [
   {
     id: "profile-summary",
-    label: "Profile Summary",
+    label: "Overview",
     content: `
-      <h2>Profile Summary</h2>
-      <p class="placeholder">Profile-summary visualization zone. Next step: add KPI cards, trend widgets, and document/metadata tables based on <code>profile_dev_v1</code> mappings.</p>
+      <h2>Overview</h2>
+      <div class="overview-chart-wrap">
+        <h3>Activity Indicators Radar</h3>
+        <canvas id="overview-radar" width="520" height="320"></canvas>
+      </div>
     `,
   },
   {
@@ -137,9 +140,113 @@ function bindProfile(profile) {
   setText("travel-risky-90", profile.times_travel_to_risky_countries_last_90d);
 }
 
-function renderTabs() {
-  const tabsRoot = document.getElementById("tabs");
+function drawRadarChart(canvasId, labels, values) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+  const radius = Math.min(w, h) * 0.33;
+  const steps = 5;
+
+  ctx.clearRect(0, 0, w, h);
+
+  // Grid
+  for (let s = 1; s <= steps; s++) {
+    const r = (radius * s) / steps;
+    ctx.beginPath();
+    labels.forEach((_, i) => {
+      const angle = (Math.PI * 2 * i) / labels.length - Math.PI / 2;
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle = "#2f3b4f";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Axes + labels
+  labels.forEach((label, i) => {
+    const angle = (Math.PI * 2 * i) / labels.length - Math.PI / 2;
+    const x = cx + radius * Math.cos(angle);
+    const y = cy + radius * Math.sin(angle);
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = "#334155";
+    ctx.stroke();
+
+    const lx = cx + (radius + 22) * Math.cos(angle);
+    const ly = cy + (radius + 22) * Math.sin(angle);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "12px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(label, lx, ly);
+  });
+
+  // Data polygon
+  ctx.beginPath();
+  values.forEach((v, i) => {
+    const vr = radius * Math.max(0, Math.min(1, v));
+    const angle = (Math.PI * 2 * i) / values.length - Math.PI / 2;
+    const x = cx + vr * Math.cos(angle);
+    const y = cy + vr * Math.sin(angle);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = "rgba(34,197,94,0.28)";
+  ctx.strokeStyle = "#22c55e";
+  ctx.lineWidth = 2;
+  ctx.fill();
+  ctx.stroke();
+}
+
+function renderOverview(profile) {
+  const labels = [
+    "Arrests 180d",
+    "Arrests <180d",
+    "Arrest Recency",
+    "Incidents 180d",
+    "Incidents <180d",
+    "Incident Recency",
+    "Risky Travel 90d",
+  ];
+
+  const arrestRecencyScore = (profile.arrested_recency || "").toLowerCase().includes("30") ? 0.8 : 0.4;
+  const incidentRecencyScore = (profile.incident_involve_recency || "").toLowerCase().includes("7") ? 1 : 0.5;
+
+  const values = [
+    Math.min((profile.times_arrested_last_180d || 0) / 10, 1),
+    Math.min((profile.times_arrested_before_180d || 0) / 20, 1),
+    arrestRecencyScore,
+    Math.min((profile.times_involved_last_180d || 0) / 15, 1),
+    Math.min((profile.times_involved_before_180d || 0) / 25, 1),
+    incidentRecencyScore,
+    Math.min((profile.times_travel_to_risky_countries_last_90d || 0) / 6, 1),
+  ];
+
+  drawRadarChart("overview-radar", labels, values);
+}
+
+function renderTabContent(tab, profile) {
   const contentRoot = document.getElementById("tab-content");
+  contentRoot.innerHTML = tab.content;
+  if (tab.id === "profile-summary") {
+    renderOverview(profile);
+  }
+}
+
+function renderTabs(profile) {
+  const tabsRoot = document.getElementById("tabs");
 
   tabs.forEach((tab, index) => {
     const button = document.createElement("button");
@@ -150,14 +257,14 @@ function renderTabs() {
     button.addEventListener("click", () => {
       document.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
-      contentRoot.innerHTML = tab.content;
+      renderTabContent(tab, profile);
     });
 
     tabsRoot.appendChild(button);
   });
 
-  contentRoot.innerHTML = tabs[0].content;
+  renderTabContent(tabs[0], profile);
 }
 
 bindProfile(sampleProfile);
-renderTabs();
+renderTabs(sampleProfile);

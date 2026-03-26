@@ -139,6 +139,25 @@ body {
   line-height: 1.6;
 }
 
+.overview-chart-wrap {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.overview-chart-wrap h3 {
+  margin: 0 0 10px;
+}
+
+#overview-radar {
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  background: #0b1220;
+  border-radius: 10px;
+}
+
 @media (max-width: 1200px) {
   .profile-panel {
     width: 360px;
