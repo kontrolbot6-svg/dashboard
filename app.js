@@ -4,7 +4,7 @@ const tabs = [
     label: "Profile Summary",
     content: `
       <h2>Profile Summary</h2>
-      <p class="placeholder">Overview cards, identity details, risk indicators, and top-level profile insights from <code>profile_dev_v1</code> will render here.</p>
+      <p class="placeholder">Profile-summary visualization zone. Next step: add KPI cards, trend widgets, and document/metadata tables based on <code>profile_dev_v1</code> mappings.</p>
     `,
   },
   {
@@ -68,19 +68,73 @@ const sampleProfile = {
   risk_score_band: "High",
   offender_category: "Repeat Offender",
   is_gang_affiliated: "Yes",
+  is_gang_member: "No",
+  gang_name: "-",
+  max_single_crime_severity: "Severe",
+  date_of_birth: "1991-04-20",
+  age: 34,
+  gender: "Male",
+  nationality_eng: "Maldivian",
+  foreigner_flag: "No",
+  residency_status: "Resident",
+  mobile_number: "+960-7000000",
+  phone_number: "+960-3000000",
+  email: "sample.person@example.com",
+  address: "Male', Maldives",
+  inside_outside_country_indicator: "Inside",
+  times_arrested_last_180d: 2,
+  times_arrested_before_180d: 5,
+  arrested_recency: "Within 30 days",
+  times_involved_last_180d: 4,
+  times_involved_before_180d: 7,
+  incident_involve_recency: "Within 7 days",
+  times_travel_to_risky_countries_last_90d: 1,
 };
 
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = value === null || value === undefined || value === "" ? "-" : value;
+}
+
 function bindProfile(profile) {
-  document.getElementById("full-name-eng").textContent = profile.full_name_eng || "-";
-  document.getElementById("full-name-dhi").textContent = profile.full_name_dhi || "-";
-  document.getElementById("person-id").textContent = profile.person_id || "-";
-  document.getElementById("id-card").textContent = profile.id_card_number || "-";
-  document.getElementById("passport").textContent = profile.passport_number || "-";
-  document.getElementById("profile-photo").src = profile.latest_photo || "https://via.placeholder.com/260x260?text=No+Image";
-  document.getElementById("risk-score").textContent = profile.risk_score ?? "-";
-  document.getElementById("risk-band").textContent = profile.risk_score_band || "-";
-  document.getElementById("offender-category").textContent = profile.offender_category || "-";
-  document.getElementById("gang-affiliated").textContent = profile.is_gang_affiliated || "-";
+  setText("full-name-eng", profile.full_name_eng);
+  setText("full-name-dhi", profile.full_name_dhi);
+  setText("person-id", profile.person_id);
+  setText("id-card", profile.id_card_number);
+  setText("passport", profile.passport_number);
+
+  document.getElementById("profile-photo").src =
+    profile.latest_photo || "https://via.placeholder.com/260x260?text=No+Image";
+
+  setText("risk-score", profile.risk_score);
+  setText("risk-band", profile.risk_score_band);
+  setText("offender-category", profile.offender_category);
+  setText("gang-affiliated", profile.is_gang_affiliated);
+  setText("gang-member", profile.is_gang_member);
+  setText("gang-name", profile.gang_name);
+  setText("max-crime-severity", profile.max_single_crime_severity);
+
+  setText("dob", profile.date_of_birth);
+  setText("age", profile.age);
+  setText("gender", profile.gender);
+  setText("nationality", profile.nationality_eng);
+  setText("foreigner-flag", profile.foreigner_flag);
+  setText("residency-status", profile.residency_status);
+
+  setText("mobile-number", profile.mobile_number);
+  setText("phone-number", profile.phone_number);
+  setText("email", profile.email);
+  setText("address", profile.address);
+  setText("inside-outside", profile.inside_outside_country_indicator);
+
+  setText("arrests-last-180", profile.times_arrested_last_180d);
+  setText("arrests-before-180", profile.times_arrested_before_180d);
+  setText("arrest-recency", profile.arrested_recency);
+  setText("involved-last-180", profile.times_involved_last_180d);
+  setText("involved-before-180", profile.times_involved_before_180d);
+  setText("incident-recency", profile.incident_involve_recency);
+  setText("travel-risky-90", profile.times_travel_to_risky_countries_last_90d);
 }
 
 function renderTabs() {

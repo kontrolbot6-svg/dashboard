@@ -70,17 +70,26 @@ body {
 }
 
 .profile-identity p,
-.profile-risk p {
+.profile-risk p,
+.profile-section p {
   margin: 8px 0;
   font-size: 0.94rem;
 }
 
-.profile-risk {
-  margin-top: 22px;
+.profile-section {
+  margin-top: 14px;
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 14px;
+}
+
+.profile-section h3 {
+  margin: 0 0 10px;
+}
+
+.profile-risk {
+  margin-top: 22px;
 }
 
 .content-panel {
