@@ -15,7 +15,36 @@ const tabs = [
     label: "Case & Enforcement History",
     content: `
       <h2>Case & Enforcement History</h2>
-      <p class="placeholder">Timeline and linked records from case, incidents, arrests, stop & search, checks, and visits will appear here.</p>
+      <p class="placeholder">Narrative-driven enforcement analytics built from case_involve, incidents, stop-search, location checks, and NSO visits.</p>
+
+      <div class="kpi-grid" id="ceh-kpis"></div>
+
+      <div class="case-grid">
+        <div class="chart-card">
+          <h3>12-Month Enforcement Activity Trend</h3>
+          <canvas id="ceh-trend" width="700" height="280"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Event Type Mix</h3>
+          <canvas id="ceh-mix" width="420" height="280"></canvas>
+        </div>
+      </div>
+
+      <div class="case-grid">
+        <div class="chart-card">
+          <h3>Location Hotspots (Island / Atoll)</h3>
+          <canvas id="ceh-hotspots" width="700" height="260"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Officer Touchpoints</h3>
+          <canvas id="ceh-officers" width="420" height="260"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3>Enforcement Storyline</h3>
+        <ol class="storyline" id="ceh-storyline"></ol>
+      </div>
     `,
   },
   {
@@ -94,6 +123,50 @@ const sampleProfile = {
   times_travel_to_risky_countries_last_90d: 1,
 };
 
+const caseEnforcementData = {
+  totals: {
+    incidents: 27,
+    caseInvolvements: 43,
+    stopSearches: 18,
+    locationChecks: 22,
+    nsoVisits: 11,
+  },
+  monthlyTrend: [
+    { month: "Apr", incidents: 1, stopSearches: 0, checks: 1, visits: 0 },
+    { month: "May", incidents: 2, stopSearches: 1, checks: 1, visits: 0 },
+    { month: "Jun", incidents: 2, stopSearches: 1, checks: 2, visits: 1 },
+    { month: "Jul", incidents: 3, stopSearches: 2, checks: 2, visits: 1 },
+    { month: "Aug", incidents: 2, stopSearches: 1, checks: 2, visits: 1 },
+    { month: "Sep", incidents: 3, stopSearches: 2, checks: 3, visits: 1 },
+    { month: "Oct", incidents: 3, stopSearches: 2, checks: 2, visits: 1 },
+    { month: "Nov", incidents: 2, stopSearches: 1, checks: 2, visits: 1 },
+    { month: "Dec", incidents: 2, stopSearches: 2, checks: 2, visits: 1 },
+    { month: "Jan", incidents: 3, stopSearches: 2, checks: 2, visits: 2 },
+    { month: "Feb", incidents: 2, stopSearches: 2, checks: 2, visits: 1 },
+    { month: "Mar", incidents: 2, stopSearches: 2, checks: 1, visits: 1 },
+  ],
+  eventMix: [
+    { label: "Case Involvement", value: 43, color: "#22c55e" },
+    { label: "Incidents", value: 27, color: "#38bdf8" },
+    { label: "Location Checks", value: 22, color: "#a78bfa" },
+    { label: "Stop & Search", value: 18, color: "#f59e0b" },
+    { label: "NSO Visits", value: 11, color: "#ef4444" },
+  ],
+  hotspots: [
+    { label: "Male'", value: 24 },
+    { label: "Hulhumale", value: 16 },
+    { label: "Addu City", value: 9 },
+    { label: "Fuvahmulah", value: 7 },
+    { label: "Kulhudhuffushi", value: 5 },
+  ],
+  officerTouchpoints: [
+    { label: "SN-2041", value: 12 },
+    { label: "SN-1188", value: 9 },
+    { label: "SN-5512", value: 7 },
+    { label: "SN-9402", value: 5 },
+  ],
+};
+
 function setText(id, value) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -155,7 +228,6 @@ function drawRadarChart(canvasId, labels, values) {
 
   ctx.clearRect(0, 0, w, h);
 
-  // Grid
   for (let s = 1; s <= steps; s++) {
     const r = (radius * s) / steps;
     ctx.beginPath();
@@ -172,7 +244,6 @@ function drawRadarChart(canvasId, labels, values) {
     ctx.stroke();
   }
 
-  // Axes + labels
   labels.forEach((label, i) => {
     const angle = (Math.PI * 2 * i) / labels.length - Math.PI / 2;
     const x = cx + radius * Math.cos(angle);
@@ -192,7 +263,6 @@ function drawRadarChart(canvasId, labels, values) {
     ctx.fillText(label, lx, ly);
   });
 
-  // Data polygon
   ctx.beginPath();
   values.forEach((v, i) => {
     const vr = radius * Math.max(0, Math.min(1, v));
@@ -208,6 +278,132 @@ function drawRadarChart(canvasId, labels, values) {
   ctx.lineWidth = 2;
   ctx.fill();
   ctx.stroke();
+}
+
+function drawLineChart(canvasId, data) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const padding = { top: 25, right: 25, bottom: 35, left: 35 };
+  const iw = w - padding.left - padding.right;
+  const ih = h - padding.top - padding.bottom;
+
+  const totals = data.map((d) => d.incidents + d.stopSearches + d.checks + d.visits);
+  const maxVal = Math.max(...totals, 1);
+
+  ctx.strokeStyle = "#334155";
+  ctx.beginPath();
+  ctx.moveTo(padding.left, padding.top);
+  ctx.lineTo(padding.left, h - padding.bottom);
+  ctx.lineTo(w - padding.right, h - padding.bottom);
+  ctx.stroke();
+
+  const stepX = iw / (data.length - 1);
+  ctx.beginPath();
+  totals.forEach((value, i) => {
+    const x = padding.left + i * stepX;
+    const y = padding.top + ih - (value / maxVal) * ih;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = "#22c55e";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  totals.forEach((value, i) => {
+    const x = padding.left + i * stepX;
+    const y = padding.top + ih - (value / maxVal) * ih;
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = "#22c55e";
+    ctx.fill();
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "11px Inter, sans-serif";
+    ctx.textAlign = "center";
+    if (i % 2 === 0) ctx.fillText(data[i].month, x, h - 12);
+  });
+}
+
+function drawDonutChart(canvasId, items) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+  const r = Math.min(w, h) * 0.34;
+
+  ctx.clearRect(0, 0, w, h);
+  const total = items.reduce((s, i) => s + i.value, 0) || 1;
+
+  let start = -Math.PI / 2;
+  items.forEach((item, idx) => {
+    const slice = (item.value / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, start + slice);
+    ctx.closePath();
+    ctx.fillStyle = item.color;
+    ctx.fill();
+    start += slice;
+
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "12px Inter, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillRect(20, 20 + idx * 20, 10, 10);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillText(`${item.label} (${item.value})`, 36, 29 + idx * 20);
+  });
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.54, 0, Math.PI * 2);
+  ctx.fillStyle = "#0f172a";
+  ctx.fill();
+
+  ctx.fillStyle = "#22c55e";
+  ctx.font = "700 20px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(`${total}`, cx, cy + 6);
+}
+
+function drawHorizontalBars(canvasId, data, barColor = "#38bdf8") {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const padding = { top: 20, right: 20, bottom: 15, left: 140 };
+  const iw = w - padding.left - padding.right;
+  const maxVal = Math.max(...data.map((d) => d.value), 1);
+  const rowH = (h - padding.top - padding.bottom) / data.length;
+
+  data.forEach((d, i) => {
+    const y = padding.top + i * rowH + rowH * 0.2;
+    const barH = rowH * 0.6;
+    const barW = (d.value / maxVal) * iw;
+
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(padding.left, y, iw, barH);
+
+    ctx.fillStyle = barColor;
+    ctx.fillRect(padding.left, y, barW, barH);
+
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "12px Inter, sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(d.label, padding.left - 8, y + barH * 0.72);
+
+    ctx.textAlign = "left";
+    ctx.fillText(d.value, padding.left + barW + 6, y + barH * 0.72);
+  });
 }
 
 function renderOverview(profile) {
@@ -237,11 +433,71 @@ function renderOverview(profile) {
   drawRadarChart("overview-radar", labels, values);
 }
 
+function renderCaseEnforcement(profile) {
+  const kpiRoot = document.getElementById("ceh-kpis");
+  if (!kpiRoot) return;
+
+  const totalEnforcementEvents =
+    caseEnforcementData.totals.incidents +
+    caseEnforcementData.totals.caseInvolvements +
+    caseEnforcementData.totals.stopSearches +
+    caseEnforcementData.totals.locationChecks +
+    caseEnforcementData.totals.nsoVisits;
+
+  const kpis = [
+    { label: "Total Enforcement Events", value: totalEnforcementEvents },
+    { label: "Incidents", value: caseEnforcementData.totals.incidents },
+    { label: "Case Involvements", value: caseEnforcementData.totals.caseInvolvements },
+    { label: "Stop & Search", value: caseEnforcementData.totals.stopSearches },
+    { label: "Location Checks", value: caseEnforcementData.totals.locationChecks },
+    { label: "NSO Visits", value: caseEnforcementData.totals.nsoVisits },
+  ];
+
+  kpiRoot.innerHTML = kpis
+    .map(
+      (k) => `
+      <div class="kpi-card">
+        <span class="kpi-label">${k.label}</span>
+        <strong class="kpi-value">${k.value}</strong>
+      </div>
+    `,
+    )
+    .join("");
+
+  drawLineChart("ceh-trend", caseEnforcementData.monthlyTrend);
+  drawDonutChart("ceh-mix", caseEnforcementData.eventMix);
+  drawHorizontalBars("ceh-hotspots", caseEnforcementData.hotspots, "#22c55e");
+  drawHorizontalBars("ceh-officers", caseEnforcementData.officerTouchpoints, "#f59e0b");
+
+  const storyRoot = document.getElementById("ceh-storyline");
+  if (!storyRoot) return;
+
+  const highMonth = caseEnforcementData.monthlyTrend.reduce((a, b) => {
+    const aTot = a.incidents + a.stopSearches + a.checks + a.visits;
+    const bTot = b.incidents + b.stopSearches + b.checks + b.visits;
+    return bTot > aTot ? b : a;
+  });
+
+  storyRoot.innerHTML = `
+    <li><strong>Pattern build-up:</strong> Case involvement (${caseEnforcementData.totals.caseInvolvements}) is the dominant enforcement signal, indicating repeat linkage to multiple events.</li>
+    <li><strong>Operational intensity:</strong> Peak activity appears in <strong>${highMonth.month}</strong>, where incident + check + stop/search volume was highest.</li>
+    <li><strong>Field contact profile:</strong> The subject had ${caseEnforcementData.totals.locationChecks} location checks and ${caseEnforcementData.totals.stopSearches} stop & search interactions, suggesting frequent frontline touchpoints.</li>
+    <li><strong>Geographic concentration:</strong> Highest hotspot is <strong>${caseEnforcementData.hotspots[0].label}</strong>, then ${caseEnforcementData.hotspots[1].label}, indicating concentrated enforcement geography.</li>
+    <li><strong>Officer exposure:</strong> Repeated engagements with top officers imply recurring operational overlap and should be examined for escalation pathways.</li>
+    <li><strong>Risk context link:</strong> With profile risk band <strong>${profile.risk_score_band}</strong>, this enforcement pattern supports prioritized monitoring and cross-tab drilldowns.</li>
+  `;
+}
+
 function renderTabContent(tab, profile) {
   const contentRoot = document.getElementById("tab-content");
   contentRoot.innerHTML = tab.content;
+
   if (tab.id === "profile-summary") {
     renderOverview(profile);
+  }
+
+  if (tab.id === "case-enforcement-history") {
+    renderCaseEnforcement(profile);
   }
 }
 

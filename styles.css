@@ -158,6 +158,71 @@ body {
   border-radius: 10px;
 }
 
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
+.kpi-card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.kpi-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+}
+
+.kpi-value {
+  font-size: 1.35rem;
+}
+
+.case-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.chart-card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.chart-card h3 {
+  margin: 0 0 8px;
+  font-size: 0.98rem;
+}
+
+#ceh-trend,
+#ceh-mix,
+#ceh-hotspots,
+#ceh-officers {
+  width: 100%;
+  height: auto;
+  background: #0b1220;
+  border-radius: 8px;
+}
+
+.storyline {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.5;
+}
+
+.storyline li {
+  margin-bottom: 8px;
+  color: #d1d5db;
+}
+
 @media (max-width: 1200px) {
   .profile-panel {
     width: 360px;
@@ -167,6 +232,12 @@ body {
   .content-panel {
     margin-left: 360px;
     width: calc(100vw - 360px);
+  }
+}
+
+@media (max-width: 980px) {
+  .case-grid {
+    grid-template-columns: 1fr;
   }
 }
 
