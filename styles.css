@@ -1,0 +1,163 @@
+:root {
+  --bg: #0f172a;
+  --panel: #111827;
+  --panel-2: #1f2937;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --accent: #22c55e;
+  --line: #374151;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100%;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.profile-panel {
+  width: 30vw;
+  min-width: 320px;
+  max-width: 30vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.profile-photo-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.profile-photo-wrap img {
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+
+.profile-identity h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.profile-identity h2 {
+  margin: 6px 0 14px;
+  font-size: 1rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.profile-identity p,
+.profile-risk p {
+  margin: 8px 0;
+  font-size: 0.94rem;
+}
+
+.profile-risk {
+  margin-top: 22px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.content-panel {
+  margin-left: 30vw;
+  width: 70vw;
+  padding: 20px;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.tab-btn {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.tab-btn:hover {
+  border-color: #6b7280;
+}
+
+.tab-btn.active {
+  background: var(--accent);
+  color: #052e16;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.tab-content {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  min-height: 72vh;
+}
+
+.placeholder {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+@media (max-width: 1200px) {
+  .profile-panel {
+    width: 360px;
+    max-width: 360px;
+  }
+
+  .content-panel {
+    margin-left: 360px;
+    width: calc(100vw - 360px);
+  }
+}
+
+@media (max-width: 860px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .profile-panel {
+    position: static;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .content-panel {
+    margin-left: 0;
+    width: 100%;
+  }
+}

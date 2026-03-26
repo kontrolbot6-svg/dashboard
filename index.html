@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile Intelligence Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="profile-panel">
+        <div class="profile-photo-wrap">
+          <img id="profile-photo" src="https://via.placeholder.com/260x260?text=Profile+Photo" alt="Profile photo" />
+        </div>
+
+        <div class="profile-identity">
+          <h1 id="full-name-eng">Full Name (ENG)</h1>
+          <h2 id="full-name-dhi">ފުރިހަމަ ނަން (DHI)</h2>
+          <p><strong>Person ID:</strong> <span id="person-id">-</span></p>
+          <p><strong>ID Card:</strong> <span id="id-card">-</span></p>
+          <p><strong>Passport:</strong> <span id="passport">-</span></p>
+        </div>
+
+        <div class="profile-risk">
+          <h3>Risk Snapshot</h3>
+          <p><strong>Risk Score:</strong> <span id="risk-score">-</span></p>
+          <p><strong>Risk Band:</strong> <span id="risk-band">-</span></p>
+          <p><strong>Offender Category:</strong> <span id="offender-category">-</span></p>
+          <p><strong>Gang Affiliated:</strong> <span id="gang-affiliated">-</span></p>
+        </div>
+      </aside>
+
+      <main class="content-panel">
+        <nav class="tabs" id="tabs"></nav>
+        <section class="tab-content" id="tab-content"></section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
