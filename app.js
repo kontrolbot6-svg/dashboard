@@ -37,18 +37,18 @@ const tabs = [
           <canvas id="ceh-pulse" width="700" height="260"></canvas>
         </div>
         <div class="chart-card">
-          <h3>Location Hotspots</h3>
+          <h3>Geo Cluster Bubble Map</h3>
           <canvas id="ceh-hotspots" width="420" height="260"></canvas>
         </div>
       </div>
 
       <div class="case-grid">
         <div class="chart-card">
-          <h3>Top Case Linkages</h3>
+          <h3>Case Progression Funnel</h3>
           <canvas id="ceh-case-link" width="700" height="260"></canvas>
         </div>
         <div class="chart-card">
-          <h3>Officer Touchpoints</h3>
+          <h3>Enforcement Timing Heatmap</h3>
           <canvas id="ceh-officers" width="420" height="260"></canvas>
         </div>
       </div>
@@ -162,11 +162,19 @@ const caseEnforcementData = {
     locationChecks: 22,
   },
   caseLinks: [
-    { label: "CASE-8841", value: 9 },
-    { label: "CASE-7712", value: 7 },
-    { label: "CASE-9033", value: 6 },
-    { label: "CASE-6620", value: 5 },
-    { label: "CASE-1182", value: 4 },
+    { label: "Case Involvements", value: 43 },
+    { label: "Incidents", value: 27 },
+    { label: "Arrests", value: 14 },
+    { label: "Location Checks", value: 22 },
+  ],
+  timingHeatmap: [
+    [1, 0, 0, 2, 3, 4],
+    [0, 1, 1, 2, 4, 5],
+    [0, 0, 2, 3, 5, 4],
+    [1, 1, 2, 4, 6, 5],
+    [0, 1, 3, 5, 4, 3],
+    [0, 2, 3, 4, 3, 2],
+    [1, 1, 2, 3, 2, 1],
   ],
   records: [
     {
@@ -523,6 +531,97 @@ function drawPulseChart(canvasId, data) {
   ctx.fillText("Arrests", 126, 17);
 }
 
+function drawBubbleClusters(canvasId, data) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const maxVal = Math.max(...data.map((d) => d.value), 1);
+  data.forEach((d, i) => {
+    const x = 70 + (i % 3) * 120 + (i * 11) % 18;
+    const y = 70 + Math.floor(i / 3) * 110;
+    const r = 14 + (d.value / maxVal) * 28;
+
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(34,197,94,${0.3 + (d.value / maxVal) * 0.5})`;
+    ctx.fill();
+    ctx.strokeStyle = "#22c55e";
+    ctx.stroke();
+
+    ctx.fillStyle = "#d1d5db";
+    ctx.font = "11px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(d.label, x, y + r + 14);
+    ctx.fillText(String(d.value), x, y + 4);
+  });
+}
+
+function drawFunnelChart(canvasId, stages) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const max = Math.max(...stages.map((s) => s.value), 1);
+  const stepH = (h - 30) / stages.length;
+
+  stages.forEach((s, i) => {
+    const topW = ((stages[i - 1]?.value || max) / max) * (w - 80);
+    const botW = (s.value / max) * (w - 80);
+    const y = 15 + i * stepH;
+
+    ctx.beginPath();
+    ctx.moveTo((w - topW) / 2, y);
+    ctx.lineTo((w + topW) / 2, y);
+    ctx.lineTo((w + botW) / 2, y + stepH - 6);
+    ctx.lineTo((w - botW) / 2, y + stepH - 6);
+    ctx.closePath();
+    ctx.fillStyle = ["#22c55e", "#38bdf8", "#f43f5e", "#a78bfa"][i % 4];
+    ctx.globalAlpha = 0.7;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = "#e5e7eb";
+    ctx.font = "12px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`${s.label}: ${s.value}`, w / 2, y + stepH / 2);
+  });
+}
+
+function drawTimingHeatmap(canvasId, matrix) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const rows = matrix.length;
+  const cols = matrix[0].length;
+  const max = Math.max(...matrix.flat(), 1);
+  const cellW = (w - 40) / cols;
+  const cellH = (h - 35) / rows;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const val = matrix[r][c];
+      const alpha = 0.15 + (val / max) * 0.85;
+      ctx.fillStyle = `rgba(245,158,11,${alpha})`;
+      ctx.fillRect(30 + c * cellW, 8 + r * cellH, cellW - 2, cellH - 2);
+    }
+  }
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "10px Inter, sans-serif";
+  ctx.fillText("Mon..Sun vs Time bands", 10, h - 6);
+}
+
 function renderOverview(profile) {
   const labels = [
     "Arrests 180d",
@@ -598,9 +697,9 @@ function renderCaseEnforcement(profile) {
   drawLineChart("ceh-trend", caseEnforcementData.monthlyTrend);
   drawDonutChart("ceh-mix", caseEnforcementData.eventMix);
   drawPulseChart("ceh-pulse", caseEnforcementData.monthlyTrend);
-  drawHorizontalBars("ceh-hotspots", caseEnforcementData.hotspots, "#22c55e");
-  drawHorizontalBars("ceh-case-link", caseEnforcementData.caseLinks, "#38bdf8");
-  drawHorizontalBars("ceh-officers", caseEnforcementData.officerTouchpoints, "#f59e0b");
+  drawBubbleClusters("ceh-hotspots", caseEnforcementData.hotspots);
+  drawFunnelChart("ceh-case-link", caseEnforcementData.caseLinks);
+  drawTimingHeatmap("ceh-officers", caseEnforcementData.timingHeatmap);
 
   const mappingRoot = document.getElementById("ceh-mapping");
   if (mappingRoot) {
@@ -646,9 +745,9 @@ function renderCaseEnforcement(profile) {
               <td>case_id, incident_id, involve_id_pk</td>
             </tr>
             <tr>
-              <td>Officer Touchpoints</td>
-              <td>location_checks_dev_v1</td>
-              <td>officer_service_number, officer_full_name_eng</td>
+              <td>Enforcement Timing Heatmap</td>
+              <td>location_checks_dev_v1, incidents_dev_v1, arrests_dev_v1</td>
+              <td>day_of_the_week_no, hour, incident_date (time-bucketed)</td>
             </tr>
             <tr>
               <td>All Enforcement Records Table</td>
