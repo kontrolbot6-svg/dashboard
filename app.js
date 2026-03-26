@@ -15,40 +15,36 @@ const tabs = [
     label: "Case & Enforcement History",
     content: `
       <h2>Case & Enforcement History</h2>
-      <p class="placeholder">Index-led view: each visualization below is sourced from a single index only.</p>
+      <p class="placeholder">Phase 1 (index-by-index): <strong>case_involve_dev_v1</strong> only.</p>
 
       <div class="kpi-grid" id="ceh-kpis"></div>
 
       <div class="case-grid">
         <div class="chart-card">
-          <h3>Incidents Trend (incidents_dev_v1)</h3>
-          <canvas id="ceh-incidents-trend" width="700" height="260"></canvas>
+          <h3>Case Involvement Added Over Time</h3>
+          <canvas id="ceh-case-monthly" width="700" height="260"></canvas>
         </div>
         <div class="chart-card">
-          <h3>Incident Crime Type Mix (incidents_dev_v1)</h3>
-          <canvas id="ceh-incidents-mix" width="420" height="260"></canvas>
-        </div>
-      </div>
-
-      <div class="case-grid">
-        <div class="chart-card">
-          <h3>Arrests Timing Heatmap (arrests_dev_v1)</h3>
-          <canvas id="ceh-arrests-heatmap" width="700" height="260"></canvas>
-        </div>
-        <div class="chart-card">
-          <h3>Case Involvement Types (case_involve_dev_v1)</h3>
+          <h3>Involvement Type Mix</h3>
           <canvas id="ceh-caseinvolve-mix" width="420" height="260"></canvas>
         </div>
       </div>
 
       <div class="case-grid">
         <div class="chart-card">
-          <h3>Location Checks Geo Clusters (location_checks_dev_v1)</h3>
-          <canvas id="ceh-location-bubbles" width="700" height="260"></canvas>
+          <h3>Age Band Distribution</h3>
+          <canvas id="ceh-case-agebands" width="700" height="260"></canvas>
         </div>
         <div class="chart-card">
-          <h3>Location Checks by Place Type (location_checks_dev_v1)</h3>
-          <canvas id="ceh-location-places" width="420" height="260"></canvas>
+          <h3>Gender Mix</h3>
+          <canvas id="ceh-case-gender" width="420" height="260"></canvas>
+        </div>
+      </div>
+
+      <div class="case-grid">
+        <div class="chart-card">
+          <h3>Top Nationalities</h3>
+          <canvas id="ceh-case-nationality" width="700" height="260"></canvas>
         </div>
       </div>
 
@@ -191,11 +187,44 @@ const caseEnforcementData = {
   },
   case_involve_dev_v1: {
     total: 43,
+    monthlyAdded: [
+      { month: "Apr", value: 2 },
+      { month: "May", value: 3 },
+      { month: "Jun", value: 4 },
+      { month: "Jul", value: 5 },
+      { month: "Aug", value: 3 },
+      { month: "Sep", value: 5 },
+      { month: "Oct", value: 4 },
+      { month: "Nov", value: 3 },
+      { month: "Dec", value: 4 },
+      { month: "Jan", value: 4 },
+      { month: "Feb", value: 3 },
+      { month: "Mar", value: 3 },
+    ],
     involvementMix: [
       { label: "Suspect", value: 18, color: "#22c55e" },
       { label: "Witness", value: 11, color: "#38bdf8" },
       { label: "Victim", value: 9, color: "#f43f5e" },
       { label: "Other", value: 5, color: "#a78bfa" },
+    ],
+    ageBands: [
+      { label: "<18", value: 3 },
+      { label: "18-24", value: 10 },
+      { label: "25-34", value: 14 },
+      { label: "35-44", value: 9 },
+      { label: "45+", value: 7 },
+    ],
+    genderMix: [
+      { label: "Male", value: 31, color: "#38bdf8" },
+      { label: "Female", value: 10, color: "#f472b6" },
+      { label: "Unknown", value: 2, color: "#94a3b8" },
+    ],
+    nationalityTop: [
+      { label: "Maldivian", value: 33 },
+      { label: "Bangladeshi", value: 4 },
+      { label: "Indian", value: 3 },
+      { label: "Sri Lankan", value: 2 },
+      { label: "Other", value: 1 },
     ],
   },
   location_checks_dev_v1: {
@@ -679,10 +708,10 @@ function renderCaseEnforcement() {
   if (!kpiRoot) return;
 
   const kpis = [
-    { label: "incidents_dev_v1 records", value: caseEnforcementData.incidents_dev_v1.total },
-    { label: "arrests_dev_v1 records", value: caseEnforcementData.arrests_dev_v1.total },
-    { label: "case_involve_dev_v1 records", value: caseEnforcementData.case_involve_dev_v1.total },
-    { label: "location_checks_dev_v1 records", value: caseEnforcementData.location_checks_dev_v1.total },
+    { label: "Index", value: "case_involve_dev_v1" },
+    { label: "Total Records", value: caseEnforcementData.case_involve_dev_v1.total },
+    { label: "Primary Type", value: "Suspect" },
+    { label: "Primary Nationality", value: "Maldivian" },
   ];
 
   kpiRoot.innerHTML = kpis
@@ -696,12 +725,11 @@ function renderCaseEnforcement() {
     )
     .join("");
 
-  drawSimpleLineChart("ceh-incidents-trend", caseEnforcementData.incidents_dev_v1.monthly, "#38bdf8");
-  drawDonutChart("ceh-incidents-mix", caseEnforcementData.incidents_dev_v1.crimeTypeMix);
-  drawTimingHeatmap("ceh-arrests-heatmap", caseEnforcementData.arrests_dev_v1.timingHeatmap);
+  drawSimpleLineChart("ceh-case-monthly", caseEnforcementData.case_involve_dev_v1.monthlyAdded, "#22c55e");
   drawDonutChart("ceh-caseinvolve-mix", caseEnforcementData.case_involve_dev_v1.involvementMix);
-  drawBubbleClusters("ceh-location-bubbles", caseEnforcementData.location_checks_dev_v1.geoClusters);
-  drawDonutChart("ceh-location-places", caseEnforcementData.location_checks_dev_v1.placeTypeMix);
+  drawHorizontalBars("ceh-case-agebands", caseEnforcementData.case_involve_dev_v1.ageBands, "#38bdf8");
+  drawDonutChart("ceh-case-gender", caseEnforcementData.case_involve_dev_v1.genderMix);
+  drawHorizontalBars("ceh-case-nationality", caseEnforcementData.case_involve_dev_v1.nationalityTop, "#a78bfa");
 
   const mappingRoot = document.getElementById("ceh-mapping");
   if (mappingRoot) {
@@ -717,39 +745,34 @@ function renderCaseEnforcement() {
           </thead>
           <tbody>
             <tr>
-              <td>Incidents Trend</td>
-              <td>incidents_dev_v1</td>
-              <td>incident_date, incident_id</td>
+              <td>Case Involvement Added Over Time</td>
+              <td>case_involve_dev_v1</td>
+              <td>added_date, involve_id_pk</td>
             </tr>
             <tr>
-              <td>Incident Crime Type Mix</td>
-              <td>incidents_dev_v1</td>
-              <td>crime_type, incident_id</td>
-            </tr>
-            <tr>
-              <td>Arrests Timing Heatmap</td>
-              <td>arrests_dev_v1</td>
-              <td>incident_date (or arrest_date), day_of_the_week_no, hour</td>
-            </tr>
-            <tr>
-              <td>Case Involvement Types</td>
+              <td>Involvement Type Mix</td>
               <td>case_involve_dev_v1</td>
               <td>involvement_type, involve_id_pk</td>
             </tr>
             <tr>
-              <td>Location Checks Geo Clusters</td>
-              <td>location_checks_dev_v1</td>
-              <td>latitude, longitude, geo_location, lcheck_id_pk</td>
+              <td>Age Band Distribution</td>
+              <td>case_involve_dev_v1</td>
+              <td>age, involve_id_pk</td>
             </tr>
             <tr>
-              <td>Location Checks by Place Type</td>
-              <td>location_checks_dev_v1</td>
-              <td>place_type, lcheck_id_pk</td>
+              <td>Gender Mix</td>
+              <td>case_involve_dev_v1</td>
+              <td>gender, involve_id_pk</td>
             </tr>
             <tr>
-              <td>All Enforcement Records Table</td>
-              <td>case_involve_dev_v1, incidents_dev_v1, arrests_dev_v1, location_checks_dev_v1</td>
-              <td>source-level record id, date/time, event type, location, officer fields</td>
+              <td>Top Nationalities</td>
+              <td>case_involve_dev_v1</td>
+              <td>nationality_eng, nationality_code, involve_id_pk</td>
+            </tr>
+            <tr>
+              <td>Records Table</td>
+              <td>case_involve_dev_v1</td>
+              <td>involve_id_pk, incident_id, added_date, full_name_eng, gender, age, nationality_eng, involvement_type</td>
             </tr>
           </tbody>
         </table>
@@ -759,7 +782,8 @@ function renderCaseEnforcement() {
 
   const recordsRoot = document.getElementById("ceh-records");
   if (recordsRoot) {
-    recordsRoot.innerHTML = caseEnforcementData.records
+    const caseOnly = caseEnforcementData.records.filter((r) => r.sourceIndex === "case_involve_dev_v1");
+    recordsRoot.innerHTML = caseOnly
       .map(
         (r) => `
         <tr>
